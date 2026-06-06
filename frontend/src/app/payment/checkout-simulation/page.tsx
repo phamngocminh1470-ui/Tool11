@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
@@ -9,7 +9,7 @@ import {
   ShieldAlert, Landmark, QrCode, AlertCircle 
 } from "lucide-react";
 
-export default function CheckoutSimulationPage() {
+function CheckoutSimulationContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { updateUser } = useAuth();
@@ -192,5 +192,13 @@ export default function CheckoutSimulationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSimulationPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Đang tải...</div>}>
+      <CheckoutSimulationContent />
+    </Suspense>
   );
 }

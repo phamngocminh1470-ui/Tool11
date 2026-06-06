@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { UserPlus, Mail, Lock, User, UserCheck, ShieldAlert } from "lucide-react";
 
-export default function RegisterPage() {
+function RegisterContent() {
   const { register } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -157,5 +157,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400">Đang tải...</div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

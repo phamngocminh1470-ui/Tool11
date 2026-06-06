@@ -6,7 +6,7 @@ import { FileText, ChevronDown, RefreshCw } from "lucide-react";
 
 interface Document {
   id: number;
-  name: str;
+  name: string;
   size: number;
   mime_type: string;
   file_url: string;

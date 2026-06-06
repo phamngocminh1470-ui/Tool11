@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { CreditCard, Check, Sparkles, AlertCircle, ShieldAlert } from "lucide-react";
+import { CreditCard, Check, Sparkles, AlertCircle, ShieldAlert, RefreshCw } from "lucide-react";
 
 export default function BillingPage() {
   const { user, updateUser } = useAuth();
