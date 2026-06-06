@@ -29,7 +29,7 @@ interface IncorrectDetail {
 
 interface ExamResult {
   exam_id: number;
-  score: float;
+  score: number;
   duration_seconds: number;
   tab_switch_count: number;
   correct_count: number;
@@ -252,7 +252,7 @@ export default function ExamPage() {
         </div>
 
         {/* Main Display Controller */}
-        {!selectedDocId && !isExamRunning && (
+        {!selectedDocId && !isExamRunning ? (
           <div className="h-80 flex flex-col items-center justify-center text-slate-500 border border-dashed border-slate-800 rounded-2xl">
             <GraduationCap className="h-8 w-8 text-purple-500/50 mb-3" />
             <span>Vui lòng chọn tài liệu học tập để chuẩn bị thi thử</span>
@@ -415,8 +415,8 @@ export default function ExamPage() {
 
               <div className="flex flex-col items-center">
                 <div className="h-32 w-32 rounded-full border-4 border-slate-800 flex flex-col items-center justify-center bg-slate-950/40 shadow-inner">
-                  <span className={`text-4xl font-extrabold ${result.score >= 80 ? "text-emerald-400" : result.score >= 50 ? "text-purple-400" : "text-amber-400"}`}>
-                    {result.score.toFixed(0)}
+                  <span className={`text-4xl font-extrabold ${result!.score >= 80 ? "text-emerald-400" : result!.score >= 50 ? "text-purple-400" : "text-amber-400"}`}>
+                    {result!.score.toFixed(0)}
                   </span>
                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Điểm số %</span>
                 </div>
@@ -425,16 +425,16 @@ export default function ExamPage() {
               <div className="grid grid-cols-3 gap-4 border-t border-b border-slate-900 py-4 max-w-md mx-auto text-xs">
                 <div>
                   <p className="text-slate-500 font-semibold uppercase tracking-wider">Làm đúng</p>
-                  <p className="text-base font-bold text-slate-200 mt-1">{result.correct_count} / {result.total_count}</p>
+                  <p className="text-base font-bold text-slate-200 mt-1">{result!.correct_count} / {result!.total_count}</p>
                 </div>
                 <div>
                   <p className="text-slate-500 font-semibold uppercase tracking-wider">Thời gian</p>
-                  <p className="text-base font-bold text-slate-200 mt-1">{formatTime(result.duration_seconds)}</p>
+                  <p className="text-base font-bold text-slate-200 mt-1">{formatTime(result!.duration_seconds)}</p>
                 </div>
                 <div>
                   <p className="text-slate-500 font-semibold uppercase tracking-wider">Lượt rời tab</p>
-                  <p className={`text-base font-bold mt-1 ${result.tab_switch_count > 0 ? "text-red-400" : "text-emerald-400"}`}>
-                    {result.tab_switch_count}
+                  <p className={`text-base font-bold mt-1 ${result!.tab_switch_count > 0 ? "text-red-400" : "text-emerald-400"}`}>
+                    {result!.tab_switch_count}
                   </p>
                 </div>
               </div>
@@ -448,15 +448,15 @@ export default function ExamPage() {
             </div>
 
             {/* Error analysis list */}
-            {result.incorrect_details.length > 0 && (
+            {result!.incorrect_details.length > 0 && (
               <div>
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
                   <EyeOff className="h-4 w-4 text-red-400" />
-                  Chi tiết lỗi sai ({result.incorrect_details.length})
+                  Chi tiết lỗi sai ({result!.incorrect_details.length})
                 </h3>
 
                 <div className="space-y-4">
-                  {result.incorrect_details.map((detail, idx) => (
+                  {result!.incorrect_details.map((detail, idx) => (
                     <div 
                       key={idx}
                       className="glass-panel rounded-xl p-5 border border-slate-850 shadow-md space-y-3"
@@ -486,7 +486,7 @@ export default function ExamPage() {
               </div>
             )}
             
-            {result.incorrect_details.length === 0 && (
+            {result!.incorrect_details.length === 0 && (
               <div className="glass-panel rounded-xl p-8 text-center text-slate-300 border border-slate-850 shadow-md flex flex-col items-center gap-2">
                 <CheckCircle className="h-10 w-10 text-emerald-400" />
                 <p className="font-bold">Tuyệt vời! Bạn không trả lời sai câu hỏi nào.</p>
