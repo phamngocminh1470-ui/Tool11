@@ -41,6 +41,25 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# Force load and validate DATABASE_URL from system environment
+env_db_url = os.getenv("DATABASE_URL")
+if env_db_url:
+    # Convert postgres:// to postgresql:// for SQLAlchemy compatibility
+    if env_db_url.startswith("postgres://"):
+        env_db_url = env_db_url.replace("postgres://", "postgresql://", 1)
+    settings.DATABASE_URL = env_db_url
+
+# Print log configuration for Render debugging
+from urllib.parse import urlparse
+try:
+    parsed = urlparse(settings.DATABASE_URL)
+    masked_host = parsed.hostname or "localhost"
+    masked_port = parsed.port or "5432"
+    masked_db = parsed.path or "/studyos"
+    print(f"🔌 [DATABASE INITIALIZATION] Successfully read DATABASE_URL. Host: {masked_host}:{masked_port}, DB: {masked_db} (Password hidden)")
+except Exception as e:
+    print(f"🔌 [DATABASE INITIALIZATION] Error parsing URL: {str(e)}")
+
 # Ensure local storage dir exists
 os.makedirs(settings.LOCAL_STORAGE_DIR, exist_ok=True)
 os.makedirs(os.path.join(settings.LOCAL_STORAGE_DIR, "documents"), exist_ok=True)
