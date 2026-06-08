@@ -86,17 +86,32 @@ body {
   box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.15);
 }
 
-/* Animated mesh glow backgrounds */
-.glow-spot {
-  position: absolute;
+/* ===== SAFE GLOW EFFECTS via pseudo-elements (never blocks clicks) ===== */
+.app-layout-root {
+  position: relative;
+}
+.app-layout-root::before,
+.app-layout-root::after {
+  content: "";
+  position: fixed;
   width: 350px;
   height: 350px;
   border-radius: 999px;
   filter: blur(120px);
-  opacity: 0.35;
+  opacity: 0.25;
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
   animation: float-glow 10s infinite alternate;
+}
+.app-layout-root::before {
+  top: 40px;
+  left: 40px;
+  background: rgb(147, 51, 234);
+}
+.app-layout-root::after {
+  bottom: 40px;
+  right: 40px;
+  background: rgb(37, 99, 235);
 }
 
 @keyframes float-glow {
@@ -107,3 +122,35 @@ body {
     transform: translate(30px, 30px) scale(1.1);
   }
 }
+
+/* Auth pages glow via pseudo-elements */
+.auth-page-glow {
+  position: relative;
+}
+.auth-page-glow::before,
+.auth-page-glow::after {
+  content: "";
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 999px;
+  filter: blur(120px);
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
+}
+.auth-page-glow::before {
+  top: -10%;
+  left: 20%;
+  background: rgb(147, 51, 234);
+}
+.auth-page-glow::after {
+  bottom: -10%;
+  right: 20%;
+  background: rgb(37, 99, 235);
+}
+
+body {
+  pointer-events: auto !important;
+}
+

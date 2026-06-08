@@ -1,17 +1,21 @@
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Union
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 from app.core.config import settings
 
-# Setup password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # Truncate to 72 characters to prevent bcrypt library limits overflow
+        safe_password = plain_password[:72]
+        return bcrypt.checkpw(safe_password.encode('utf-8'), hashed_password.encode('utf-8'))
+    except Exception:
+        return False
 
 def get_password_hash(password: str) -> str:
-    return pwd_context.hash(password)
+    # Truncate to 72 characters to prevent bcrypt library limits overflow
+    safe_password = password[:72]
+    return bcrypt.hashpw(safe_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 def create_access_token(subject: Union[str, Any], expires_delta: Union[timedelta, None] = None) -> str:
     if expires_delta:

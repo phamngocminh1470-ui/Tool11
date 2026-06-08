@@ -53,7 +53,7 @@ class Document(Base):
     chapters = relationship("Chapter", back_populates="document", cascade="all, delete-orphan")
     flashcards = relationship("Flashcard", back_populates="document", cascade="all, delete-orphan")
     quizzes = relationship("Quiz", back_populates="document", cascade="all, delete-orphan")
-    exams = relationship("Exam", back_populates="document")
+    exams = relationship("Exam", back_populates="document", cascade="all, delete-orphan")
 
 class Chapter(Base):
     __tablename__ = "chapters"
@@ -107,7 +107,7 @@ class Exam(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    document_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=False)
     quiz_ids = Column(JSON, nullable=False)  # List[int]
     user_answers = Column(JSON, nullable=False)  # dict {quiz_id: answer}
     score = Column(Float, nullable=False)  # Percentage score
@@ -149,7 +149,7 @@ class AIUsageLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    document_id = Column(Integer, ForeignKey("documents.id"), nullable=True)
+    document_id = Column(Integer, ForeignKey("documents.id", ondelete="CASCADE"), nullable=True)
     prompt_tokens = Column(Integer, default=0)
     completion_tokens = Column(Integer, default=0)
     cost = Column(Float, default=0.0)

@@ -90,10 +90,27 @@ export default function SummaryPage() {
             <span>Vui lòng chọn tài liệu ở góc trên bên phải để xem tóm tắt</span>
           </div>
         ) : loading ? (
-          <div className="h-80 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <RefreshCw className="h-8 w-8 text-purple-400 animate-spin" />
-              <span className="text-sm text-slate-400 font-medium">AI đang trích xuất tóm tắt...</span>
+          <div className="flex flex-col gap-6 animate-pulse">
+            {/* Tabs skeleton */}
+            <div className="h-10 w-full max-w-md bg-slate-900/60 rounded-xl border border-slate-850" />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left pane skeleton */}
+              <div className="lg:col-span-2 glass-panel rounded-2xl p-6 border border-slate-850/80 flex flex-col gap-4">
+                <div className="h-4 w-48 bg-slate-800 rounded-md" />
+                <div className="h-3.5 w-full bg-slate-800/70 rounded-md" />
+                <div className="h-3.5 w-full bg-slate-800/70 rounded-md" />
+                <div className="h-3.5 w-full bg-slate-800/70 rounded-md" />
+                <div className="h-3.5 w-3/4 bg-slate-800/70 rounded-md" />
+              </div>
+              
+              {/* Right pane skeleton */}
+              <div className="glass-panel rounded-2xl p-6 border border-slate-850/80 flex flex-col gap-4">
+                <div className="h-4 w-32 bg-slate-800 rounded-md" />
+                <div className="h-3.5 w-full bg-slate-800/50 rounded-md" />
+                <div className="h-3.5 w-full bg-slate-800/50 rounded-md" />
+                <div className="h-3.5 w-full bg-slate-800/50 rounded-md" />
+              </div>
             </div>
           </div>
         ) : !summary ? (

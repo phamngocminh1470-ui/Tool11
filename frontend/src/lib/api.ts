@@ -1,7 +1,11 @@
 const getApiBaseUrl = () => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
   const cleanUrl = envUrl.replace(/\/$/, "");
-  return cleanUrl.endsWith("/api") ? cleanUrl : `${cleanUrl}/api`;
+  const finalUrl = cleanUrl.endsWith("/api") ? cleanUrl : `${cleanUrl}/api`;
+  if (typeof window !== "undefined") {
+    console.log("🔌 StudyOS API BASE URL:", finalUrl);
+  }
+  return finalUrl;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -22,6 +26,27 @@ function getHeaders(isMultipart = false) {
   return headers;
 }
 
+// Wrapper for fetch with automatic timeout (20 seconds)
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 20000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } catch (err: any) {
+    if (err.name === "AbortError") {
+      throw new Error("Kết nối đến server quá lâu. Vui lòng kiểm tra lại Backend.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function handleResponse(response: Response) {
   if (!response.ok) {
     let errMsg = "Đã xảy ra lỗi hệ thống";
@@ -39,7 +64,7 @@ async function handleResponse(response: Response) {
 export const api = {
   // --- AUTH ---
   async login(credentials: any) {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(credentials),
@@ -48,7 +73,7 @@ export const api = {
   },
 
   async register(data: any) {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -57,7 +82,7 @@ export const api = {
   },
 
   async verifyOtp(data: { email: string; otp: string }) {
-    const res = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/verify-otp`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -66,7 +91,7 @@ export const api = {
   },
 
   async forgotPassword(email: string) {
-    const res = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/forgot-password`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ email }),
@@ -75,7 +100,7 @@ export const api = {
   },
 
   async resetPassword(data: any) {
-    const res = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/reset-password`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -84,7 +109,7 @@ export const api = {
   },
 
   async loginGoogle(email: string, name: string, avatarUrl?: string) {
-    const res = await fetch(`${API_BASE_URL}/auth/login-google`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/login-google`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ email, name, avatar_url: avatarUrl }),
@@ -93,7 +118,7 @@ export const api = {
   },
 
   async loginGithub(email: string, name: string, avatarUrl?: string) {
-    const res = await fetch(`${API_BASE_URL}/auth/login-github`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/login-github`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ email, name, avatar_url: avatarUrl }),
@@ -102,7 +127,7 @@ export const api = {
   },
 
   async updateProfile(data: { full_name?: string; avatar_url?: string }) {
-    const res = await fetch(`${API_BASE_URL}/auth/profile`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/profile`, {
       method: "PUT",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -111,7 +136,7 @@ export const api = {
   },
 
   async changePassword(data: any) {
-    const res = await fetch(`${API_BASE_URL}/auth/change-password`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/auth/change-password`, {
       method: "PUT",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -121,7 +146,7 @@ export const api = {
 
   // --- DASHBOARD ---
   async getDashboardStats() {
-    const res = await fetch(`${API_BASE_URL}/dashboard/stats`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/dashboard/stats`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -129,7 +154,7 @@ export const api = {
   },
 
   async getDashboardCharts() {
-    const res = await fetch(`${API_BASE_URL}/dashboard/charts`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/dashboard/charts`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -184,7 +209,7 @@ export const api = {
 
   async getDocuments(q?: string) {
     const url = q ? `${API_BASE_URL}/files/list?q=${encodeURIComponent(q)}` : `${API_BASE_URL}/files/list`;
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -192,7 +217,7 @@ export const api = {
   },
 
   async renameDocument(docId: number, name: string) {
-    const res = await fetch(`${API_BASE_URL}/files/${docId}/rename`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/files/${docId}/rename`, {
       method: "PUT",
       headers: getHeaders(),
       body: JSON.stringify({ name }),
@@ -201,7 +226,7 @@ export const api = {
   },
 
   async deleteDocument(docId: number) {
-    const res = await fetch(`${API_BASE_URL}/files/${docId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/files/${docId}`, {
       method: "DELETE",
       headers: getHeaders(),
     });
@@ -209,7 +234,7 @@ export const api = {
   },
 
   async getAnalysisStatus(docId: number) {
-    const res = await fetch(`${API_BASE_URL}/files/${docId}/status`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/files/${docId}/status`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -218,7 +243,7 @@ export const api = {
 
   // --- AI SERVICES ---
   async getSummary(docId: number) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/summary/${docId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/summary/${docId}`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -226,7 +251,7 @@ export const api = {
   },
 
   async getKnowledgeMap(docId: number) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/knowledge-map/${docId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/knowledge-map/${docId}`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -234,7 +259,7 @@ export const api = {
   },
 
   async getFlashcards(docId: number) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/flashcards/${docId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/flashcards/${docId}`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -242,7 +267,7 @@ export const api = {
   },
 
   async reviewFlashcard(data: { flashcard_id: number; box_level: number }) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/flashcards/review`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/flashcards/review`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -251,7 +276,7 @@ export const api = {
   },
 
   async getQuizzes(docId: number) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/quizzes/${docId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/quizzes/${docId}`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -260,7 +285,7 @@ export const api = {
 
   // --- EXAM MODE ---
   async startExam(data: { document_id: number; num_questions: number; difficulty: string; type?: string }) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/exam/start`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/exam/start`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -269,7 +294,7 @@ export const api = {
   },
 
   async submitExam(data: { exam_id: number; answers: Array<{ quiz_id: number; answer: string }>; duration_seconds: number; tab_switch_count: number }) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/exam/submit`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/exam/submit`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -279,7 +304,7 @@ export const api = {
 
   // --- AI TUTOR (CHAT) ---
   async askTutor(data: { document_id: number; message: string; history: Array<{ role: string; content: string }> }) {
-    const res = await fetch(`${API_BASE_URL}/ai-services/tutor/chat`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/ai-services/tutor/chat`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -289,7 +314,7 @@ export const api = {
 
   // --- PAYMENT ---
   async checkout(data: { tier: string; gateway: string }) {
-    const res = await fetch(`${API_BASE_URL}/payment/checkout`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/payment/checkout`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -298,7 +323,7 @@ export const api = {
   },
 
   async triggerPaymentSuccessCallback(orderId: string) {
-    const res = await fetch(`${API_BASE_URL}/payment/callback/${orderId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/payment/callback/${orderId}`, {
       method: "POST",
       headers: getHeaders(),
     });
@@ -307,7 +332,7 @@ export const api = {
 
   // --- AFFILIATE ---
   async getAffiliateStats() {
-    const res = await fetch(`${API_BASE_URL}/affiliate/stats`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/affiliate/stats`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -315,7 +340,7 @@ export const api = {
   },
 
   async requestWithdrawal() {
-    const res = await fetch(`${API_BASE_URL}/affiliate/withdraw`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/affiliate/withdraw`, {
       method: "POST",
       headers: getHeaders(),
     });
@@ -324,7 +349,7 @@ export const api = {
 
   // --- ADMIN PANEL ---
   async adminGetUsers() {
-    const res = await fetch(`${API_BASE_URL}/admin/users`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/admin/users`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -332,7 +357,7 @@ export const api = {
   },
 
   async adminUpdateUser(userId: number, data: { role?: string; tier?: string; is_verified?: boolean }) {
-    const res = await fetch(`${API_BASE_URL}/admin/users/${userId}`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/admin/users/${userId}`, {
       method: "PUT",
       headers: getHeaders(),
       body: JSON.stringify(data),
@@ -341,7 +366,7 @@ export const api = {
   },
 
   async adminGetStats() {
-    const res = await fetch(`${API_BASE_URL}/admin/stats`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/admin/stats`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -349,7 +374,15 @@ export const api = {
   },
 
   async adminGetLogs() {
-    const res = await fetch(`${API_BASE_URL}/admin/system-logs`, {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/admin/system-logs`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  },
+
+  async adminGetDocuments() {
+    const res = await fetchWithTimeout(`${API_BASE_URL}/admin/documents`, {
       method: "GET",
       headers: getHeaders(),
     });

@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.core.database import SessionLocal, engine, Base
 from app.core.security import get_password_hash
-from app.models.models import User, Document, Chapter, Flashcard, Quiz, Exam, SystemLog
+from app.models.models import User, Document, Chapter, Flashcard, Quiz, Exam, SystemLog, AIUsageLog
 
 def seed_data():
     # Make sure tables exist
@@ -19,14 +19,28 @@ def seed_data():
         print("Running seed script for StudyOS AI...")
         
         # 1. Check or create default tester user
-        test_email = "test@studyos.ai"
-        user = db.query(User).filter(User.email == test_email).first()
-        if not user:
+        test_email = "phamngocminh1470@gmail.com"
+        
+        # Check by new email, old email, or referral code
+        user = db.query(User).filter((User.email == test_email) | (User.email == "test@studyos.ai") | (User.referral_code == "STUDY_TESTER")).first()
+        if user:
+            # Update the account to matching email, password, full name and premium details
+            user.email = test_email
+            user.password_hash = get_password_hash("Tuananhstudio@")
+            user.full_name = "TUAN ANH STUDIO"
+            user.avatar_url = f"https://api.dicebear.com/7.x/bottts/svg?seed={test_email}"
+            user.tier = "premium"
+            user.wallet_balance = 250000.0
+            user.is_verified = True
+            db.commit()
+            db.refresh(user)
+            print(f"-> Updated test account: {test_email} / Tuananhstudio@ (Premium Tier)")
+        else:
             user = User(
                 email=test_email,
-                password_hash=get_password_hash("12345678"),
-                full_name="Hoc Vien Mau",
-                avatar_url="https://api.dicebear.com/7.x/bottts/svg?seed=test@studyos.ai",
+                password_hash=get_password_hash("Tuananhstudio@"),
+                full_name="TUAN ANH STUDIO",
+                avatar_url=f"https://api.dicebear.com/7.x/bottts/svg?seed={test_email}",
                 role="user",
                 tier="premium",
                 referral_code="STUDY_TESTER",
@@ -36,13 +50,7 @@ def seed_data():
             db.add(user)
             db.commit()
             db.refresh(user)
-            print(f"-> Created test account: {test_email} / 12345678 (Premium Tier)")
-        else:
-            # Upgrade to premium and reset balance just in case
-            user.tier = "premium"
-            user.wallet_balance = 250000.0
-            db.commit()
-            print(f"-> Test account already exists: {test_email}")
+            print(f"-> Created test account: {test_email} / Tuananhstudio@ (Premium Tier)")
 
         # 2. Check or create default admin user
         admin_email = "admin@studyos.ai"
@@ -63,7 +71,9 @@ def seed_data():
             db.refresh(admin_user)
             print(f"-> Created admin account: {admin_email} / admin123")
 
-        # Remove old docs for this test user to keep it clean
+        # Remove old docs, logs, and exams for this test user to keep it clean
+        db.query(AIUsageLog).filter(AIUsageLog.user_id == user.id).delete()
+        db.query(Exam).filter(Exam.user_id == user.id).delete()
         old_docs = db.query(Document).filter(Document.user_id == user.id).all()
         for doc in old_docs:
             db.delete(doc)
@@ -187,7 +197,7 @@ def seed_data():
         print("-> Created exam history")
 
         # 8. Create System Logs
-        log1 = SystemLog(user_id=user.id, action="Register", details="Registered default user test@studyos.ai", ip_address="127.0.0.1")
+        log1 = SystemLog(user_id=user.id, action="Register", details="Registered default user phamngocminh1470@gmail.com", ip_address="127.0.0.1")
         log2 = SystemLog(user_id=user.id, action="Upload File", details="Uploaded document GiaoTrinhMarketing.pdf", ip_address="127.0.0.1")
         log3 = SystemLog(user_id=user.id, action="Payment Success", details="Upgraded subscription tier to Premium via MOMO", ip_address="127.0.0.1")
         db.add(log1)

@@ -37,17 +37,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    let mounted = true;
     async function initAuth() {
-      const storedToken = localStorage.getItem("studyos_token");
-      const storedUser = localStorage.getItem("studyos_user");
-      
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+      try {
+        const storedToken = localStorage.getItem("studyos_token");
+        const storedUser = localStorage.getItem("studyos_user");
+        
+        if (storedToken && storedUser) {
+          try {
+            const parsed = JSON.parse(storedUser);
+            if (mounted) {
+              setToken(storedToken);
+              setUser(parsed);
+            }
+          } catch {
+            // Corrupted user data in localStorage — clear it
+            localStorage.removeItem("studyos_token");
+            localStorage.removeItem("studyos_user");
+          }
+        }
+      } catch {
+        // Ignore unexpected errors during init
+      } finally {
+        if (mounted) setLoading(false);
       }
-      setLoading(false);
     }
     initAuth();
+
+    // Safety net: force loading=false after 5 seconds regardless
+    const safetyTimer = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 5000);
+
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimer);
+    };
   }, []);
 
   // Protect routes based on authentication state
@@ -65,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [user, loading, pathname, router]);
 
   const login = async (credentials: any) => {
-    setLoading(true);
+    // Don't set global loading=true for login — use local state at LoginPage instead
     try {
       const data = await api.login(credentials);
       localStorage.setItem("studyos_token", data.access_token);
@@ -75,21 +100,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/dashboard");
     } catch (err) {
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
   const register = async (data: any) => {
-    setLoading(true);
+    // Don't set global loading=true for register — use local state at RegisterPage instead
     try {
       await api.register(data);
       // Redirect to verification OTP page
       router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 

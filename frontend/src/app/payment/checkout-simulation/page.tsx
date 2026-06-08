@@ -66,10 +66,7 @@ function CheckoutSimulationContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex justify-center items-center px-4 py-8 relative overflow-hidden">
-      <div className="glow-spot bg-purple-600/40 top-[-10%] left-[20%]" />
-      <div className="glow-spot bg-blue-600/40 bottom-[-10%] right-[20%]" />
-
+    <div className="min-h-screen bg-slate-950 flex justify-center items-center px-4 py-8 auth-page-glow overflow-hidden">
       <div className="w-full max-w-lg relative z-10">
         <div className="glass-panel rounded-2xl p-6 lg:p-8 shadow-2xl border border-slate-800 space-y-6">
           

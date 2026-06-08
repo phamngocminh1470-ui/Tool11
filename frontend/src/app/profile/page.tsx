@@ -140,7 +140,7 @@ export default function ProfilePage() {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="Học Viên Mẫu"
+                  placeholder="TUAN ANH STUDIO"
                   className="w-full px-4 py-3 bg-slate-900 border border-slate-800 focus:border-purple-500 rounded-lg text-slate-200 text-sm focus:outline-none transition-all"
                 />
               </div>

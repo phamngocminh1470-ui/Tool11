@@ -78,7 +78,7 @@ export default function DocumentSelector({ onSelect, selectedDocId }: DocumentSe
           </button>
 
           {isOpen && (
-            <div className="absolute top-12 left-0 w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg shadow-xl py-1 z-35 overflow-y-auto max-h-60">
+            <div className="absolute top-full left-0 w-full mt-1 bg-slate-900 border border-slate-800 rounded-lg shadow-xl py-1 z-50 overflow-y-auto max-h-60">
               {documents.map((doc) => (
                 <button
                   key={doc.id}

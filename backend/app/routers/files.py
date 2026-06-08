@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from starlette.background import BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from pydantic import BaseModel
@@ -7,10 +8,11 @@ from app.core.database import get_db
 from app.routers.auth import get_current_user
 from app.models.models import User, Document, Chapter, Flashcard, Quiz, SystemLog
 from app.schemas.schemas import DocumentResponse, DocumentAnalysisResponse
-from app.services.supabase_service import upload_file_to_storage
+from app.services.supabase_service import upload_file_to_storage, delete_file_from_storage
 from app.services.ai_service import (
     extract_text_from_bytes,
     analyze_document_content,
+    generate_knowledge_map,
     generate_flashcards_ai,
     generate_quizzes_ai
 )
@@ -58,6 +60,28 @@ def run_background_ai_analysis(doc_id: int, file_bytes: bytes, filename: str, mi
             db.add(db_chapter)
         db.commit()
         
+        # 3.5 Generate & Cache Knowledge Map
+        try:
+            chapters_list = [{
+                "title": ch.get("title", f"Chương {idx+1}"),
+                "content_summary": ch.get("content_summary", ""),
+                "keywords": ch.get("keywords", [])
+            } for idx, ch in enumerate(chapters_data)]
+            
+            map_data = generate_knowledge_map(chapters_list, doc.name)
+            
+            # Cập nhật parsed_sections với map_data
+            doc.parsed_sections = {
+                "short_summary": analysis_data.get("short_summary", ""),
+                "detailed_summary": analysis_data.get("detailed_summary", ""),
+                "bullet_points": analysis_data.get("bullet_points", []),
+                "knowledge_map": map_data
+            }
+            db.commit()
+        except Exception as map_err:
+            import logging
+            logging.getLogger("studyos.ai").error(f"Error generating background knowledge map: {str(map_err)}")
+        
         # 4. Generate & save Flashcards
         flashcards_data = generate_flashcards_ai(text_content, filename)
         for card in flashcards_data:
@@ -94,7 +118,8 @@ def run_background_ai_analysis(doc_id: int, file_bytes: bytes, filename: str, mi
     except Exception as e:
         db.rollback()
         # Log error in system audit
-        log = SystemLog(user_id=doc.user_id, action="AI Analysis Error", details=f"Lỗi phân tích file {filename}: {str(e)}")
+        user_id = doc.user_id if doc else None
+        log = SystemLog(user_id=user_id, action="AI Analysis Error", details=f"Lỗi phân tích file {filename}: {str(e)}")
         db.add(log)
         db.commit()
     finally:
@@ -115,6 +140,14 @@ async def upload_file(
         raise HTTPException(
             status_code=400,
             detail=f"Định dạng file {ext} không được hỗ trợ. Chỉ nhận PDF, DOCX, PPTX, TXT, JPG, PNG."
+        )
+
+    # Validate file size (250MB limit) before reading to prevent memory issues
+    file_size_on_disk = file.size if file.size is not None else 0
+    if file_size_on_disk > 250 * 1024 * 1024:
+        raise HTTPException(
+            status_code=400,
+            detail="Kích thước tệp vượt quá giới hạn cho phép (250MB)."
         )
         
     # Read file bytes
@@ -219,10 +252,18 @@ def delete_document(doc_id: int, current_user: User = Depends(get_current_user),
     if not doc:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu")
         
+    # Xóa file vật lý trước
+    try:
+        delete_file_from_storage(doc.file_url)
+    except Exception as e:
+        # Ghi log lỗi xóa file vật lý nhưng vẫn tiến hành xóa record DB
+        import logging
+        logging.getLogger("studyos.files").error(f"Lỗi khi xóa file vật lý {doc.file_url}: {str(e)}")
+        
     db.delete(doc)
     db.commit()
     
-    log = SystemLog(user_id=current_user.id, action="Delete File", details=f"Xóa tài liệu ID: {doc_id}.")
+    log = SystemLog(user_id=current_user.id, action="Delete File", details=f"Xóa tài liệu ID: {doc_id} và các tài nguyên liên quan.")
     db.add(log)
     db.commit()
     

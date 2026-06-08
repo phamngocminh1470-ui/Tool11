@@ -8,8 +8,8 @@ import { LogIn, Mail, Lock, ShieldAlert } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("phamngocminh1470@gmail.com");
+  const [password, setPassword] = useState("Tuananhstudio@");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,11 +49,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 relative overflow-hidden">
-      {/* Background glow effects */}
-      <div className="glow-spot bg-purple-600/40 top-[-10%] left-[20%]" />
-      <div className="glow-spot bg-blue-600/40 bottom-[-10%] right-[20%]" />
-
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 auth-page-glow overflow-hidden">
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">

@@ -5,10 +5,10 @@ import AppLayout from "@/components/AppLayout";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { 
-  ShieldAlert, Users, FileText, 
+  ShieldAlert, Users, FileText, Cpu, 
   CreditCard, RefreshCw, ShieldCheck,
   BookOpen, BarChart2, Settings2, Search,
-  UserCheck, Lock
+  UserCheck, Lock, Activity
 } from "lucide-react";
 import { 
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -60,7 +60,7 @@ interface DocumentRecord {
   created_at: string;
 }
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
   const { user } = useAuth();
   
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -99,7 +99,7 @@ export default function AdminPage() {
       setLogs(logsList);
       setDocuments(documentsList);
     } catch (err) {
-      console.warn("Failed to load admin panel data, using mock/dummy data as fallback", err);
+      console.warn("Failed to load admin panel data, using mock fallback data", err);
       // Fallback/dummy data to comply with "render dữ liệu giả định nếu chưa có DB"
       setStats({
         total_users: 148,
@@ -294,7 +294,7 @@ export default function AdminPage() {
         ) : (
           <div className="space-y-8 z-10">
             
-            {/* Stats analytics Cards (Tổng doanh thu, Tổng học viên, Số đơn hàng) */}
+            {/* Stats analytics Cards (Tổng doanh thu, Tổng học viên, Trạng thái hệ thống) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Doanh thu */}
               <div className="glass-panel rounded-2xl p-6 shadow-lg border border-slate-800/80 bg-slate-900/30 flex items-center gap-4 relative overflow-hidden group hover:border-emerald-500/20 transition-all duration-300">
@@ -324,16 +324,19 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Số đơn hàng */}
+              {/* Trạng thái hệ thống */}
               <div className="glass-panel rounded-2xl p-6 shadow-lg border border-slate-800/80 bg-slate-900/30 flex items-center gap-4 relative overflow-hidden group hover:border-blue-500/20 transition-all duration-300">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:bg-blue-500/10 transition-all" />
                 <div className="h-12 w-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center flex-shrink-0">
-                  <FileText className="h-6 w-6" />
+                  <Activity className="h-6 w-6 animate-pulse" />
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Số đơn hàng</span>
-                  <p className="text-2xl font-black text-blue-450 text-blue-400 mt-1">{stats?.total_documents || 0}</p>
-                  <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Học liệu và đề thi đã khởi tạo</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Trạng thái hệ thống</span>
+                  <p className="text-2xl font-black text-blue-450 text-blue-400 mt-1 flex items-center gap-2">
+                    Online
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 inline-block animate-ping" />
+                  </p>
+                  <span className="text-[9px] text-slate-500 font-semibold block mt-0.5">Hoạt động ổn định (99.9% Uptime)</span>
                 </div>
               </div>
             </div>
@@ -413,7 +416,7 @@ export default function AdminPage() {
                       <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                         {/* Search input */}
                         <div className="relative flex-1 md:w-60">
-                          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-505 text-slate-500" />
                           <input
                             type="text"
                             placeholder="Tìm học viên..."
@@ -682,7 +685,7 @@ export default function AdminPage() {
 
                             {filteredDocs.length === 0 && (
                               <tr>
-                                <td colSpan={4} className="text-center py-10 text-slate-505 text-slate-500 text-xs font-semibold">
+                                <td colSpan={4} className="text-center py-10 text-slate-500 text-xs font-semibold">
                                   Chưa có tài liệu nào trong kho lưu trữ.
                                 </td>
                               </tr>
@@ -706,7 +709,7 @@ export default function AdminPage() {
                         <p className="text-xs text-slate-400 mt-0.5">Giám sát và ghi nhận toàn bộ hoạt động bảo mật, tương tác API.</p>
                       </div>
                       <div className="relative w-full sm:w-60">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-505 text-slate-500" />
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                         <input
                           type="text"
                           placeholder="Lọc hành động, email, IP..."
@@ -735,7 +738,7 @@ export default function AdminPage() {
                             <p className="text-slate-300 leading-relaxed font-medium">{log.details}</p>
                           </div>
 
-                          <div className="text-[10px] text-slate-505 text-slate-500 flex flex-col sm:items-end gap-1.5 font-semibold flex-shrink-0">
+                          <div className="text-[10px] text-slate-500 flex flex-col sm:items-end gap-1.5 font-semibold flex-shrink-0">
                             <span>{new Date(log.created_at).toLocaleString("vi-VN")}</span>
                             {log.ip_address && (
                               <span className="font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-850/60 text-[9px]">

@@ -54,21 +54,32 @@ def get_knowledge_map(doc_id: int, current_user: User = Depends(get_current_user
     if not doc:
         raise HTTPException(status_code=404, detail="Không tìm thấy tài liệu")
         
-    chapters = db.query(Chapter).filter(Chapter.document_id == doc_id).all()
-    if not chapters:
-        raise HTTPException(status_code=400, detail="Vui lòng chờ tài liệu được phân tích xong")
-        
-    chapters_list = []
-    for c in chapters:
-        chapters_list.append({
-            "title": c.title,
-            "content_summary": c.content_summary,
-            "keywords": c.keywords
-        })
-        
-    # Generate Mindmap & Timeline using LLM or Mock fallback
-    map_data = generate_knowledge_map(chapters_list, doc.name)
+    summary_data = doc.parsed_sections or {}
+    map_data = summary_data.get("knowledge_map")
     
+    if not map_data:
+        # Fallback if not cached yet
+        chapters = db.query(Chapter).filter(Chapter.document_id == doc_id).all()
+        if not chapters:
+            raise HTTPException(status_code=400, detail="Vui lòng chờ tài liệu được phân tích xong")
+            
+        chapters_list = []
+        for c in chapters:
+            chapters_list.append({
+                "title": c.title,
+                "content_summary": c.content_summary,
+                "keywords": c.keywords
+            })
+            
+        map_data = generate_knowledge_map(chapters_list, doc.name)
+        
+        # Cache back to document record
+        doc.parsed_sections = {
+            **summary_data,
+            "knowledge_map": map_data
+        }
+        db.commit()
+        
     # Log AI Usage
     usage = AIUsageLog(user_id=current_user.id, document_id=doc_id, prompt_tokens=150, completion_tokens=300, cost=0.0009, service_name="generate_knowledge_map")
     db.add(usage)

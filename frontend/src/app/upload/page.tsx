@@ -124,6 +124,10 @@ export default function UploadPage() {
 
   const handleUpload = async (file: File) => {
     setError(null);
+    if (file.size > 250 * 1024 * 1024) {
+      setError("Kích thước file vượt quá giới hạn 250MB.");
+      return;
+    }
     setUploading(true);
     setUploadProgress(0);
 
@@ -234,7 +238,7 @@ export default function UploadPage() {
           
           <p className="font-bold text-slate-200">Kéo thả tài liệu vào đây</p>
           <p className="text-xs text-slate-500 mt-1.5 max-w-sm leading-relaxed">
-            hoặc click để duyệt tìm tệp trong máy tính của bạn. Hạn mức tối đa 20MB.
+            hoặc click để duyệt tìm tệp trong máy tính của bạn. Hạn mức tối đa 250MB.
           </p>
 
           {uploading && (

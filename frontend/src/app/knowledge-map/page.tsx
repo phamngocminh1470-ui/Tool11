@@ -120,10 +120,32 @@ export default function KnowledgeMapPage() {
             <span>Vui lòng chọn tài liệu để khởi dựng sơ đồ kiến thức</span>
           </div>
         ) : loading ? (
-          <div className="h-80 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <RefreshCw className="h-8 w-8 text-purple-400 animate-spin" />
-              <span className="text-sm text-slate-400 font-medium">AI đang vẽ sơ đồ học tập...</span>
+          <div className="flex flex-col gap-6 animate-pulse">
+            {/* Tab switch skeleton */}
+            <div className="h-10 w-full max-w-md bg-slate-900/60 rounded-xl border border-slate-850" />
+            
+            {/* Skeleton visual block */}
+            <div className="glass-panel rounded-2xl p-6 lg:p-8 min-h-[450px] border border-slate-850/80 flex flex-col gap-6">
+              <div className="h-4 w-40 bg-slate-800 rounded-md" />
+              
+              {/* Root node skeleton */}
+              <div className="h-12 w-56 bg-slate-800 rounded-xl" />
+              
+              {/* Child branches skeletons */}
+              <div className="pl-6 border-l border-slate-800 space-y-6 mt-4">
+                <div className="relative">
+                  <span className="absolute left-[-24px] top-[18px] w-4 border-t border-slate-800"></span>
+                  <div className="h-10 w-44 bg-slate-800/80 rounded-lg" />
+                  <div className="pl-6 border-l border-slate-800 space-y-3 mt-3">
+                    <div className="h-8 w-28 bg-slate-800/50 rounded-lg" />
+                    <div className="h-8 w-32 bg-slate-800/50 rounded-lg" />
+                  </div>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-[-24px] top-[18px] w-4 border-t border-slate-800"></span>
+                  <div className="h-10 w-48 bg-slate-800/80 rounded-lg" />
+                </div>
+              </div>
             </div>
           </div>
         ) : !kMap ? (
