@@ -19,8 +19,8 @@ function getHeaders(isMultipart = false) {
     headers["Content-Type"] = "application/json";
   }
   
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  if (token && token !== "null" && token !== "undefined" && token.trim() !== "") {
+    headers["Authorization"] = `Bearer ${token.trim()}`;
   }
   
   return headers;
@@ -172,8 +172,8 @@ export const api = {
       xhr.open("POST", `${API_BASE_URL}/files/upload`);
       
       const token = typeof window !== "undefined" ? localStorage.getItem("studyos_token") : null;
-      if (token) {
-        xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+      if (token && token !== "null" && token !== "undefined" && token.trim() !== "") {
+        xhr.setRequestHeader("Authorization", `Bearer ${token.trim()}`);
       }
 
       if (progressCallback && xhr.upload) {

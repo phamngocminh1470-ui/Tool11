@@ -39,15 +39,61 @@ class Settings(BaseSettings):
         extra="ignore"
     )
 
+from urllib.parse import quote_plus, unquote
+
+def sanitize_database_url(url: str) -> str:
+    if not url:
+        return url
+    # Convert postgres:// to postgresql:// for SQLAlchemy compatibility
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    
+    if not url.startswith("postgresql://"):
+        return url
+
+    prefix = "postgresql://"
+    url_part = url[len(prefix):]
+
+    # Split username:password from the rest (host:port/database)
+    # The last '@' symbol separates credentials from the host
+    if "@" in url_part:
+        creds_part, host_part = url_part.rsplit("@", 1)
+        if ":" in creds_part:
+            username, password = creds_part.split(":", 1)
+            # URL encode the password to escape '@', ':', etc.
+            decoded_password = unquote(password)
+            encoded_password = quote_plus(decoded_password)
+            return f"{prefix}{username}:{encoded_password}@{host_part}"
+    
+    return url
+
 settings = Settings()
 
 # Force load and validate DATABASE_URL from system environment
 env_db_url = os.getenv("DATABASE_URL")
+is_render = os.getenv("RENDER") == "true"
+is_production = settings.ENV == "production"
+
 if env_db_url:
-    # Convert postgres:// to postgresql:// for SQLAlchemy compatibility
-    if env_db_url.startswith("postgres://"):
-        env_db_url = env_db_url.replace("postgres://", "postgresql://", 1)
+    # Sanitize and url-encode database URL password
+    env_db_url = sanitize_database_url(env_db_url)
+    
+    # Check if the database URL points to localhost when it shouldn't
+    if (is_render or is_production) and ("localhost" in env_db_url or "127.0.0.1" in env_db_url):
+        raise ValueError(
+            "❌ [DATABASE ERROR] DATABASE_URL points to localhost, but the application is running on Render/Production! "
+            "Please configure a valid production database URL in your Environment settings on Render."
+        )
     settings.DATABASE_URL = env_db_url
+else:
+    # If we are on Render or production environment, we MUST have DATABASE_URL defined
+    if is_render or is_production:
+        raise ValueError(
+            "❌ [DATABASE ERROR] DATABASE_URL is not set in the environment variables, "
+            "but the application is running on Render/Production! Database connection is required."
+        )
+    settings.DATABASE_URL = sanitize_database_url(settings.DATABASE_URL)
+    print("⚠️ [DATABASE WARNING] DATABASE_URL environment variable is missing. Falling back to local default.")
 
 # Print log configuration for Render debugging
 from urllib.parse import urlparse
