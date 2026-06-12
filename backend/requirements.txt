@@ -9,3 +9,4 @@ sqlalchemy
 supabase
 python-multipart
 pydantic-settings
+email-validator
