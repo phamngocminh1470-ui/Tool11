@@ -13,3 +13,4 @@ email-validator
 openai
 httpx
 google-generativeai
+pdfplumber
