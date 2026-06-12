@@ -2,11 +2,13 @@ fastapi
 uvicorn
 gunicorn
 pydantic
+pydantic-settings
 python-jose[cryptography]
 passlib[bcrypt]
 psycopg2-binary
 sqlalchemy
 supabase
 python-multipart
-pydantic-settings
 email-validator
+openai
+httpx
