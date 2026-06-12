@@ -22,6 +22,8 @@ app = FastAPI(
 
 # Configure secure CORS origins
 allowed_origins = [
+    "https://tuananhstudio.com",
+    "https://www.tuananhstudio.com",
     "https://my-tool11.vercel.app",
     "http://localhost:3000",
     "http://localhost:3001",
@@ -32,7 +34,7 @@ allowed_origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.tuananhstudio\.com",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
